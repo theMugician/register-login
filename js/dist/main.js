@@ -6336,7 +6336,7 @@ this.dataAdapter.destroy(),this.selection.destroy(),this.dropdown.destroy(),this
         }
     })();
 });
-$(document).ready(function() {
+//$(document).ready(function() {
 	function scrll(selector, speed) {
 
 		selector.click(function(e) {
@@ -6363,7 +6363,9 @@ $(document).ready(function() {
 
 	scrll($("#foot").find("a"), 2000);
 
-
+	function test(){
+		console.log("Testing func Works!!!");
+	}
 
 	$('.nav a').on('click', function() {
 
@@ -6384,6 +6386,13 @@ $(document).ready(function() {
 	  $('.modal:not(#' + thismodal + ')').modal('hide');
 	})
 
+	$(document).ready(function(){
+		$('#register-modal').on('shown.bs.modal', function () {
+			console.log("modal fired");
+		})
+	})
+
+	/*
 	$('#register-form').submit(function (e) {
   	e.stopPropagation();
   })
@@ -6391,85 +6400,163 @@ $(document).ready(function() {
 	$('#register-form input').on("click", function(e) {
   	e.stopPropagation();
 	})
+	*/
+	var registration = (function(){
 
-	var allWells = $('.setup-content'),
-			allNextBtn = $('.nextBtn'),
-			allSkipStep = $('.skip-step'),
-			goBack = $('.go-back'),
-			step = 0;
+		var allWells,
+				allNextBtn = $('.nextBtn'),
+				allSkipStep = $('.skip-step'),
+				goBack = $('.go-back'),
+				step = 0;
 
-	allWells.hide();
-
-	function nextStep(step) {
-		allWells.hide();
-		allWells.eq(step).show();
-	}
-
-	function errorMessage(input) {
-		$(input).closest(".form-group").addClass("has-error");
-		valMessage = $(input).attr("data-validationmessage");
-		$(input).siblings(".help-block").text(valMessage);	
-	}
-
-	goBack.click(function(){
-		step--;
-		nextStep(step);
-			
-	});
-
-	allSkipStep.click(function(){
-		step++;
-		if(step === 5){
-			step = 0;
-		   $('.modal').modal('hide');  
+		function cacheDOM(start) {
+			allWells = $('.setup-content');
+			allNextBtn = $('.nextBtn');
+			allSkipStep = $('.skip-step');
+			goBack = $('.go-back');
+			step = start;
 		}
-		nextStep(step);
-			
-	});
 
-	allNextBtn.click(function(event){
-		event.preventDefault();
-		var curStep = $(this).closest(".setup-content"),
-			curInputs = curStep.find("input[type='text'],input[type='email'],input[type='password'],select,textarea"),
-			isValid = true;
-
-		$(".form-group").removeClass("has-error");
-		for(var i=0; i<curInputs.length; i++){
-			$(curInputs[i]).siblings(".help-block").text("");
-			if (!curInputs[i].validity.valid){
-				errorMessage(curInputs[i]);
-				isValid = false;
-			}
-			
-			if (curInputs.eq(i).attr("data-validationmatch")) {
-	
-				otherInput = curInputs.eq(i).attr("data-validationmatch");
-				$otherInput = $(otherInput);
-				$otherValue = $otherInput.val();
-				if ($(curInputs[i]).val() !== $otherValue) {
-					errorMessage(curInputs[i]);
-					isValid = false;
-				}
-			}
-
+		function bindEvents() {
+			allNextBtn.click(next);
+			allSkipStep.click(skip);
+			goBack.click(back);
 		}
-		//alert("isValid: " + isValid);
-		if (isValid) {
+
+		//allWells.hide();
+
+		function nextStep() {
+			allWells.hide();
+			console.log("nextStep: ", step);
+			allWells.eq(step).show();
+		}
+
+		function errorMessage(input) {
+			$(input).closest(".form-group").addClass("has-error");
+			valMessage = $(input).attr("data-validationmessage");
+			$(input).siblings(".help-block").text(valMessage);	
+		}
+
+		function registrationError(message) {
+			var container = $("#step-2 > h4");
+			container.text(message);
+		}
+
+		function registerUser() {
+			var formdata = $("#register-form").serialize();
+			//console.log(formdata);
+			$.ajax({
+	      type:"post",
+	      url:"php/register.php",
+	      data: formdata,
+	      success:function(result){
+	      	if (result === "email_exists") {
+	      		alert("email");
+	      		registrationError("User with this email already exists!");
+	      	} else if (result === "registration_failed") {
+	      		alert("reg failed");
+	      		registrationError("Registration Failed!");
+	      	} else {
+	      		step++;
+	      		nextStep(step);
+	      		console.log(result);
+	      	}
+	      }
+	    });
+		}
+
+		function back(){
+			step--;
+			nextStep(step);
+				
+		};
+
+		function skip(){
 			step++;
 			if(step === 5){
 				step = 0;
 			   $('.modal').modal('hide');  
 			}
 			nextStep(step);
+				
+		};
 
-		}
-	});
+		function next(){
+			console.log("step: ", step);
+			event.preventDefault();
+			var curStep = $(this).closest(".setup-content"),
+				curInputs = curStep.find("input[type='text'],input[type='email'],input[type='password'],select,textarea"),
+				isValid = true;
 
-	allWells.eq(0).show();
+			$(".form-group").removeClass("has-error");
+			for(var i=0; i<curInputs.length; i++){
+				$(curInputs[i]).siblings(".help-block").text("");
+				if (!curInputs[i].validity.valid){
+					errorMessage(curInputs[i]);
+					isValid = false;
+				}
+				
+				if (curInputs.eq(i).attr("data-validationmatch")) {
+		
+					otherInput = curInputs.eq(i).attr("data-validationmatch");
+					$otherInput = $(otherInput);
+					$otherValue = $otherInput.val();
+					if ($(curInputs[i]).val() !== $otherValue) {
+						errorMessage(curInputs[i]);
+						isValid = false;
+					}
+				}
+			}
 
-	$('.modal').on('hidden.bs.modal', function(){
-		$(this).find('form')[0].reset();
-	});
+			if(step === 1) {
+				registerUser();
+			} else {
+				if (isValid) {
+					step++;
+					if(step === 4) {
+						final.init;
+					}
+					if(step === 5) {
+						step = 0;
+					   $('.modal').modal('hide');  
+					}
+					nextStep(step);
+				}
+			}
+
+			alert("isValid: " + isValid);
+			
+		};
+
+		//allWells.eq(0).show();
+
+		$('.modal').on('hidden.bs.modal', function(){
+			$(this).find('form')[0].reset();
+		});
+
+	  function _init(start) {
+	    if ( start === undefined ) {
+	    	step = 0;
+	    } else {
+	    	step = start;
+	    }
+	    console.log("reg init: ", step);
+	    cacheDOM(start);
+	    bindEvents();
+	    //allWells.hide();
+	  	//allWells.eq(step).show();
+	  	nextStep();
+	  }
+
+	  return {
+      init: function(start) {
+      	_init(start)
+      }
+    }
+
+	})()
+
+	//registration.init();
 
 	//------------------------------------------
 	// CUSTOM SELECT OPTION
@@ -6500,9 +6587,6 @@ $(document).ready(function() {
 	  tags: true,
 	minimumResultsForSearch: Infinity
 	});
-
-
-
 	//------------------------------------------
 	// POPULATE FIELDS IN STEP-5 OF REGISTRATION
 	//------------------------------------------
@@ -6543,11 +6627,29 @@ $(document).ready(function() {
 
 		finalSubmit.click(function(e){
 			e.preventDefault();
+			_userDetails();
 		});
 
     function _init() {
-      _parentFields.init();
+      _parentFields.init;
     }
+
+    function _userDetails() {
+			var formdata = $("#register-form").serialize();
+			//console.log(formdata);
+			$.ajax({
+	      type:"post",
+	      url:"php/user_details.php",
+	      data: formdata,
+	      success:function(result){
+	      	if (result === "account_updated") {
+	      		console.log("account updated")
+	      	} else if (result === "error") {
+	      		console.log("Update Failed!");
+	      	}
+	      }
+	    });
+		}
 
     function _getCategories(id, callback) {
       if( id === undefined) {
@@ -6635,7 +6737,7 @@ $(document).ready(function() {
       	_getCategories(id, this.updateArray);
         this.updateTitle(parent);
         fieldList.addClass('slide');
-      }      
+      }
     }
 
     //------------------------------------------
@@ -6693,7 +6795,7 @@ $(document).ready(function() {
 						var categoryStr="";
 							categoryStr += "  <div class=\"form-group space-between\">";
 							categoryStr += "    <div class=\"checkbox\">";
-							categoryStr += "      <label><input type=\"checkbox\" checked=\"checked\" value=\"\">" + category + "<\/label>";
+							categoryStr += "      <label><input type=\"checkbox\" name=\"selected_fields[]\" checked=\"checked\" value=\"" + category + "\">" + category + "<\/label>";
 							categoryStr += "    <\/div>";
 							categoryStr += "  <\/div>";
 
@@ -6716,7 +6818,6 @@ $(document).ready(function() {
     }
   })();
 
-	final.init;
 	
 	//------------------------------------------
 	// NODES
@@ -6877,4 +6978,4 @@ $(document).ready(function() {
 	})
 
 	
-});
+//});
