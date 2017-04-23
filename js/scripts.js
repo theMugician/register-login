@@ -39,6 +39,47 @@
 
 	});
 
+	var Login = (function(){
+
+		var submit;
+
+		function cacheDOM() {
+			submit = $(".login");
+		}
+
+		function bindEvents() {
+			submit.click(login);
+		}
+
+		function init() {
+			cacheDOM();
+			bindEvents();
+		}
+			
+		function login() {
+			var formdata = $("#login-form").serialize();
+			$.ajax({
+	      type:"post",
+	      url:"php/login.php",
+	      data: formdata,
+	      success:function(result){
+	      	if (result === "!exist") {
+	      		registrationError("User with this email doesn't exist!");
+	      	} else if (result === "!password") {
+	      		registrationError("You have entered the wrong password, Please try again!");
+	      	} else {
+	      		window.location = 'index.php';
+	      		console.log("Logged In");
+	      	}
+	      }
+	    })
+		}
+
+		return {
+			init: init
+		}
+	})()
+
 	//------------------------------------------
 	// REGISTRATION - FORM
 	//------------------------------------------
@@ -49,20 +90,13 @@
 	})
 
 	$(document).ready(function(){
-		$('#register-modal').on('shown.bs.modal', function () {
-			console.log("modal fired");
+
+		$('#login-modal').on('shown.bs.modal', function () {
+			Login.init();
 		})
+
 	})
 
-	/*
-	$('#register-form').submit(function (e) {
-  	e.stopPropagation();
-  })
-
-	$('#register-form input').on("click", function(e) {
-  	e.stopPropagation();
-	})
-	*/
 	var registration = (function(){
 
 		var allWells,
@@ -87,9 +121,12 @@
 
 		//allWells.hide();
 
+		function activate() {
+			$(".activateBtn").prop('disabled', false);
+		}
+
 		function nextStep() {
 			allWells.hide();
-			console.log("nextStep: ", step);
 			allWells.eq(step).show();
 		}
 
@@ -106,7 +143,6 @@
 
 		function registerUser() {
 			var formdata = $("#register-form").serialize();
-			//console.log(formdata);
 			$.ajax({
 	      type:"post",
 	      url:"php/register.php",
@@ -119,11 +155,11 @@
 	      		alert("reg failed");
 	      		registrationError("Registration Failed!");
 	      	} else {
-	      		$(".registration_name").text(result.first_name);
-	      		$(".registration_email").text(result.email);
+	      		json = JSON.parse(result);
+	      		$(".registration_name").text(json.first_name);
+	      		$(".registration_email").text(json.email);
 	      		step++;
 	      		nextStep(step);
-	      		console.log(result);
 	      	}
 	      }
 	    });
@@ -146,7 +182,6 @@
 		};
 
 		function next(){
-			console.log("step: ", step);
 			event.preventDefault();
 			var curStep = $(this).closest(".setup-content"),
 				curInputs = curStep.find("input[type='text'],input[type='email'],input[type='password'],select,textarea"),
@@ -178,7 +213,7 @@
 				if (isValid) {
 					step++;
 					if(step === 4) {
-						final.init;
+						FinalStep.init();
 					}
 					if(step === 5) {
 						step = 0;
@@ -186,10 +221,7 @@
 					}
 					nextStep(step);
 				}
-			}
-
-			alert("isValid: " + isValid);
-			
+			}			
 		};
 
 		//allWells.eq(0).show();
@@ -204,28 +236,26 @@
 	    } else {
 	    	step = start;
 	    }
-	    console.log("reg init: ", step);
 	    cacheDOM(start);
 	    bindEvents();
-	    //allWells.hide();
-	  	//allWells.eq(step).show();
 	  	nextStep();
 	  }
 
 	  return {
       init: function(start) {
       	_init(start)
+      },
+      activate: function() {
+      	activate()
       }
     }
 
 	})()
 
-	//registration.init();
-
 	//------------------------------------------
 	// CUSTOM SELECT OPTION
 	//------------------------------------------
-
+$(document).ready(function(){
 	var initialText = $('.editable').val();
 	$('.editOption').val(initialText);
 
@@ -251,28 +281,52 @@
 	  tags: true,
 	minimumResultsForSearch: Infinity
 	});
+})
+	
 	//------------------------------------------
 	// POPULATE FIELDS IN STEP-5 OF REGISTRATION
 	//------------------------------------------
 
-	var final = (function(){
+	var FinalStep = (function(){
 		
 		//------------------------------------------
 		// GLOBAL 
 		//------------------------------------------		
 
-		var fieldList = $(".field-list");
-		var backBtn = $(".backBtn");
-		var fieldCategory = $(".available-fields .header p");
-		var search = $("#search-fields");
-		var finalSubmit = $(".final-btn");
+		var fieldList,
+				backBtn,
+				fieldCategory,
+				search,
+				finalSubmit,
+				parentFieldslist,
+				selectedFieldsList,
+    		specificFieldsList;
 
-		backBtn.click(function(){
+		function cacheDOM() {
+  		parentFieldsList = $(".parent-fields ul");
+			selectedFieldsList = $(".selected-fields-list");
+    	specificFieldsList = $(".specific-fields");
+  		fieldList = $(".field-list");
+			backBtn = $(".backBtn");
+			fieldCategory = $(".available-fields .header p");
+			search = $("#search-fields");
+			finalSubmit = $(".final-btn");
+  	}
+
+  	function bindEvents() {
+			backBtn.click(slideBack);
+			finalSubmit.click(function(e){
+				e.preventDefault();
+				_userDetails();
+			});
+		}
+
+		function slideBack() {
 			fieldCategory.text("Available Fields");
 			fieldList.removeClass("slide");
-			_specificFields.list.html("");
-		})
-
+			specificFieldsList.html("");
+		}
+		/*
 		search.keyup(function(e) {
 			e.stopImmediatePropagation();
 	    if(e.keyCode === 13) {
@@ -287,20 +341,16 @@
            }
         });
 	    }
-    });	
-
-		finalSubmit.click(function(e){
-			e.preventDefault();
-			_userDetails();
-		});
-
+    });
+		*/
     function _init() {
-      _parentFields.init;
+    	cacheDOM();
+    	bindEvents();
+      _parentFields.init();
     }
 
     function _userDetails() {
 			var formdata = $("#register-form").serialize();
-			//console.log(formdata);
 			$.ajax({
 	      type:"post",
 	      url:"php/user_details.php",
@@ -332,7 +382,6 @@
 
     function _fieldClickHandler (parent, field) {
     	var selectedField = field.closest("label").text();
-    	console.log(field);
 			if(field.is(":checked")) {
 				_selectedFields.array.push({"parent": parent, "title": selectedField });
 				_selectedFields.init();
@@ -363,7 +412,6 @@
 		//------------------------------------------							
 
     var _specificFields = {
-    	list: $(".specific-fields"),
     	array: [],
     	parentid: "",
     	parent: "",
@@ -375,10 +423,10 @@
 				_specificFields.render();
 			},
       render: function() {
-    		_specificFields.list.html("");
-      	$.each(_specificFields.array[0].categories, function(key, category){
-    			_specificFields.parentid = _specificFields.array[0].parents[0].id;
-    			_specificFields.parent = _specificFields.array[0].parents[0].title;
+    		specificFieldsList.html("");
+      	$.each(_specificFields.array.categories, function(key, category){
+    			_specificFields.parentid = _specificFields.array.parents[0].id;
+    			_specificFields.parent = _specificFields.array.parents[0].title;
 	        var categoryStr = "";
 							categoryStr += "  <div class=\"form-group space-between\">";
 							categoryStr += "    <div class=\"checkbox\">";
@@ -387,7 +435,7 @@
 							categoryStr += "  <\/div>";
 
 					var field = $(categoryStr);
-					_specificFields.list.append(field);
+					specificFieldsList.append(field);
 					field = field.find("input");
 					field.prop('checked', 
 						_checkedBox(category.title, _specificFields.parent)
@@ -409,17 +457,17 @@
 		//------------------------------------------
 
     var _parentFields = {
-
-    	list: $(".parent-fields ul"),
       render: function(data) {
-      	$.each(data[0].categories, function(key, category){
+      	parentFieldsList.html("");
+      	$.each(data.categories, function(key, category){
 	        var categoryStr =  "";
 	            categoryStr += "<li>";
 	            categoryStr += "<a><span>" + category.title + "<\/span><span>&gt;<\/span><\/a>";
 	            categoryStr += "<\/li>";
 
 					var field = $(categoryStr);
-					_parentFields.list.append(field);
+					console.log(_parentFields.list);
+					parentFieldsList.append(field);
 					field.click(function(){
 						_specificFields.init(category.id, category.title);
 					})
@@ -436,11 +484,10 @@
 		//------------------------------------------
 
     var _selectedFields = {
-    	list: $(".selected-fields-list"),
     	array: [],
     	render: function(data) {
 
-    		this.list.html("");
+    		selectedFieldsList.html("");
 
 				var groups = {};
 				_selectedFields.array.forEach(function (item) {
@@ -453,7 +500,7 @@
 				$.each(groups, function(key, group){ 
 					var parentField = key;
 					var parentDiv = "<div class='parent-title'>" + parentField + "</div>";
-					_selectedFields.list.append(parentDiv);
+					selectedFieldsList.append(parentDiv);
 					$.each(group, function(key, category) {
 						
 						var categoryStr="";
@@ -464,7 +511,7 @@
 							categoryStr += "  <\/div>";
 
 						var field = $(categoryStr);
-						_selectedFields.list.append(field);
+						selectedFieldsList.append(field);
 						field = field.find("input");
 						field.click(function(){
 							_fieldClickHandler(parent, field)
@@ -478,7 +525,7 @@
     }
 
     return {
-      init: _init()
+      init: _init
     }
   })();
 

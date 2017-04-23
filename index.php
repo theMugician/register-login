@@ -1,10 +1,12 @@
 <?php
   include "php/db.php";
   session_start();
-  /*
+ /* 
+
     session_unset();
   session_destroy(); 
-  
+
+
 */ 
   if ( $_SESSION['logged_in'] === true ) {
 
@@ -53,9 +55,9 @@
   <link href="css/styles.css" rel="stylesheet">
 
   <link href="css/material-design-iconic-font.css" rel="stylesheet">
-
+ -->
   <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
-  -->
+ 
   <!--
 
   <link href="css/styles-old.css" rel="stylesheet">
@@ -114,6 +116,7 @@
     
     //test;
     registration.init(2);
+    registration.activate();
     $("#register-modal").modal('show'); 
   })
   
@@ -183,12 +186,22 @@
                 <li class="active"><a href="#find">The Platform</a></li>
                 <li class="active"><a href="#mission">Our Mission</a></li>
                 <li class="active"><a href="#join-title">Take Action</a></li>
+
+                <?php  if ( $_SESSION['logged_in'] === true ) { ?>
+                  
+                <li class="active logout"><a href="php/logout.php">Logout</a></li>
+
+              <?php } else { ?> 
+              
                 <li class="active"><a data-toggle="modal" data-target="#login-modal">Login</a></li>
                 <li class="active">
                   <a data-toggle="modal" data-target="#register-modal">
                     <button class="btn btn-primary">Join</button>
                   </a>
                 </li>
+  
+              <?php } ?>
+
               </ul>
 
             </div>
@@ -579,18 +592,18 @@
                 </span>
               </div>
               <div class="form-group">
-                <input class="form-control" id="youremail" name="youremail" placeholder="Email Address" type="email" data-validationmessage="Please fill out email" id="email" required="required" />
+                <input class="form-control" id="youremail" name="email" placeholder="Email Address" type="email" data-validationmessage="Please fill out email" id="email" required="required" />
               </div> 
               <div class="form-group">
-                <input class="form-control" id="yourpassword" name="yourpassword" placeholder="Password" type="password" data-validationmessage="Please fill out password" required="required" />
+                <input class="form-control" id="yourpassword" name="password" placeholder="Password" type="password" data-validationmessage="Please fill out password" required="required" />
               </div>  
               <div class="form-group space-between">
                 <div class="checkbox">
-                  <label><input type="checkbox" value="">Remember Me</label>
+                  <label><input type="checkbox" name="remember" value="">Remember Me</label>
                 </div>
                 <a href="#">Forgot password?</a>
               </div>
-              <button type="submit" href="#" class="nextBtn btn btn-lg btn-em btn-block">Login</button>
+              <button type="submit" href="#" class="nextBtn btn btn-lg btn-em btn-block login">Login</button>
               <p class="agree">Don't have an account yet? <a data-toggle="modal" data-target="#register-modal">Register here.</a></p>
             </div><!-- end col -->
           </div><!-- end row -->
@@ -672,7 +685,7 @@
               <h3 class="m-t-0 m-b-40">Activate your account</h3>
               <p class="text-left">Welcome <span class="registration_name"><?php echo $first_name ?> </span></p>
               <p class="agree m-b-40 text-left">Please click on the activation link we've sent to your email inbox at <a href="#"> <span class="registration_email"><?php echo $email ?> </span></a></p>
-              <button disabled=true href="#" class="nextBtn btn btn-lg btn-em btn-block">Continue</button>
+              <button disabled=true href="#" class="nextBtn btn btn-lg btn-em btn-block activateBtn">Continue</button>
               <p class="agree m-b-0"><a href="#">resend activation email</a></p>
             </div>
           </div>
