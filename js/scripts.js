@@ -41,14 +41,18 @@
 
 	var Login = (function(){
 
-		var submit;
+		var submit, error;
 
 		function cacheDOM() {
-			submit = $(".login");
+			form = $("#login-form");
+			error = $("#login-form .error");
 		}
 
 		function bindEvents() {
-			submit.click(login);
+			form.submit(function(e){
+				e.preventDefault();
+				login();
+			});
 		}
 
 		function init() {
@@ -56,6 +60,11 @@
 			bindEvents();
 		}
 			
+		function registrationError(message) {
+			error.text("");
+			error.text(message);
+		}
+
 		function login() {
 			var formdata = $("#login-form").serialize();
 			$.ajax({
@@ -67,9 +76,11 @@
 	      		registrationError("User with this email doesn't exist!");
 	      	} else if (result === "!password") {
 	      		registrationError("You have entered the wrong password, Please try again!");
-	      	} else {
+	      	} else if ("login_success") {
 	      		window.location = 'index.php';
 	      		console.log("Logged In");
+	      	} else {
+	      		console.log(result);
 	      	}
 	      }
 	    })
@@ -80,21 +91,166 @@
 		}
 	})()
 
+
+	var Forgot = (function(){
+
+		var submit;
+
+		function cacheDOM() {
+			submit = $(".forgot");
+			content = $("#forgot-modal .col-xs-12");
+			form = $("#forgot-modal form");
+		}
+
+		function bindEvents() {
+			//submit.click(reset);
+			form.submit(function(e){
+				e.preventDefault();
+				reset();
+			})
+		}
+
+		function init() {
+			console.log("Forgot init");
+			cacheDOM();
+			bindEvents();
+		}
+
+		function reset() {
+			var formdata = form.serialize();
+			$.ajax({
+	      type:"post",
+	      url:"php/forgot.php",
+	      data: formdata,
+	      success:function(result){
+	      	if (result === "!exist") {
+	      		registrationError("User with this email doesn't exist!");
+	      	} else {
+	      		var message = "<p>Please check your email <a href=''><span class='registration_email'>" + result + "</span></a> for a confirmation link to complete your password reset!<p>";
+            content.html(message);
+	      		console.log("Reset Sent");
+	      	}
+	      }
+	    })
+		}
+
+		return {
+			init: init
+		}
+	})()
+
+	var Reset = (function(){
+
+		var form, content;
+
+		function cacheDOM() {
+			form = $("#reset-modal form");
+			content = $("#reset-modal .col-xs-12");
+		}
+
+		function bindEvents() {
+			form.submit(function(e){
+				e.preventDefault();
+				if(Validation(form)) {
+					reset();
+				} else {
+					console.log("Not Valid");
+				}
+			});
+		}
+
+		function init() {
+			cacheDOM();
+			bindEvents();
+		}
+
+		function reset() {
+			var formdata = $("#reset-modal form").serialize();
+			$.ajax({
+	      type:"post",
+	      url:"php/reset_password.php",
+	      data: formdata,
+	      success:function(result){
+	      	if (result === "!exist") {
+	      		registrationError("User with this email doesn't exist!");
+	      	} else if (result === "reset_success") {
+	      		var message  = "<h3 class='m-t-0 m-b-40'>Your password has been reset successfully!</h3>";
+	      				
+            content.html(message);
+	      		console.log("Reset Sent");
+	      	} else {
+	      		console.log("Reset Error");
+	      	}
+	      }
+	    })
+		}
+
+		return {
+			init: init
+		}
+	})()
+
+
 	//------------------------------------------
 	// REGISTRATION - FORM
 	//------------------------------------------
 
-	$('.modal').on('shown.bs.modal', function () {
-	   var thismodal = $(this).attr('id'); 
-	  $('.modal:not(#' + thismodal + ')').modal('hide');
-	})
+
+
+	function Validation(form) {
+		var $form = form;
+		var inputs = form.find("input[type='text'],input[type='email'],input[type='password'],select,textarea");
+		var $inputs = $(inputs);
+		var $formgroup = $form.find(".form-group");
+		var isValid = true;
+
+		$formgroup.removeClass("has-error");
+
+		function errorMessage(input) {
+			var input = $(input);
+			var valMessage = input.attr("data-validationmessage");
+			input.closest(".form-group").addClass("has-error");
+			input.siblings(".help-block").text(valMessage);	
+		}
+
+		//Loop through each input and check for validity
+		for(var i=0; i<$inputs.length; i++){
+			$inputs.eq(i).siblings(".help-block").text("");
+			if (!$inputs[i].validity.valid){
+				errorMessage($inputs[i]);
+				isValid = false;
+			}
+			
+			if ($inputs.eq(i).attr("data-validationmatch")) {
+				otherInput = inputs.eq(i).attr("data-validationmatch");
+				$otherInput = $(otherInput);
+				$otherValue = $otherInput.val();
+				if ($inputs.eq(i).val() !== $otherValue) {
+					errorMessage($inputs[i]);
+					isValid = false;
+				}
+			}
+
+		}
+		return isValid;
+
+	}
 
 	$(document).ready(function(){
+
+		$('.modal').on('shown.bs.modal', function () {
+		  var thismodal = $(this).attr('id'); 
+		  $('.modal:not(#' + thismodal + ')').modal('hide');
+		})
 
 		$('#login-modal').on('shown.bs.modal', function () {
 			Login.init();
 		})
 
+		$('#forgot-modal').on('shown.bs.modal', function () {
+			console.log("Forgot initiated");
+			Forgot.init();
+		})
 	})
 
 	var registration = (function(){
@@ -149,10 +305,8 @@
 	      data: formdata,
 	      success:function(result){
 	      	if (result === "email_exists") {
-	      		alert("email");
 	      		registrationError("User with this email already exists!");
 	      	} else if (result === "registration_failed") {
-	      		alert("reg failed");
 	      		registrationError("Registration Failed!");
 	      	} else {
 	      		json = JSON.parse(result);

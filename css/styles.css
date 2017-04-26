@@ -300,13 +300,23 @@ q {
 body {
   background: #f2f2f2; }
 
-/* Registraton Form 
+/* Registraton Form || Login Form
 --------------------------------
 --------------------------------
 Black: #E1E1E1
 */
 #login-modal form {
   width: 360px; }
+
+#forgot-modal .modal-dialog {
+  min-width: 470px;
+  min-height: 200px; }
+  #forgot-modal .modal-dialog .row {
+    margin-left: 0;
+    margin-right: 0; }
+  #forgot-modal .modal-dialog .col-xs-12 {
+    padding-left: 0;
+    padding-right: 0; }
 
 #register-modal .modal-dialog {
   min-width: 440px;

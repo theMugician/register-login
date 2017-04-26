@@ -13,7 +13,6 @@
     $first_name = $_SESSION['first_name'];
     $last_name = $_SESSION['last_name'];
     $email = $_SESSION['email'];
-    echo $email;
   }
 ?>
 
@@ -136,6 +135,12 @@
   <?php
   
   }
+
+  if (isset($_GET['reset'])) {
+    require 'php/reset.php';    
+
+  }
+
   ?>
   <!--
   <script type="text/javascript">
@@ -192,7 +197,7 @@
                 <li class="active logout"><a href="php/logout.php">Logout</a></li>
 
               <?php } else { ?> 
-              
+
                 <li class="active"><a data-toggle="modal" data-target="#login-modal">Login</a></li>
                 <li class="active">
                   <a data-toggle="modal" data-target="#register-modal">
@@ -578,7 +583,7 @@
       
       <div class="modal-body text-center">
 
-        <form role="form">
+        <form role="form" id="login-form">
           <div class="row">
             <div class="col-xs-12">
               <button href="#" class="nextBtn btn btn-lg btn-li btn-block"><i class="zmdi zmdi-linkedin"></i>Log in with Linkedin</button>
@@ -591,6 +596,7 @@
                 or <!--Padding is optional-->
                 </span>
               </div>
+              <h3 class="error"></h3>
               <div class="form-group">
                 <input class="form-control" id="youremail" name="email" placeholder="Email Address" type="email" data-validationmessage="Please fill out email" id="email" required="required" />
               </div> 
@@ -601,9 +607,9 @@
                 <div class="checkbox">
                   <label><input type="checkbox" name="remember" value="">Remember Me</label>
                 </div>
-                <a href="#">Forgot password?</a>
+                <a data-toggle="modal" data-target="#forgot-modal">Forgot password?</a>
               </div>
-              <button type="submit" href="#" class="nextBtn btn btn-lg btn-em btn-block login">Login</button>
+              <button type="submit" href="#" class="btn btn-lg btn-em btn-block login">Login</button>
               <p class="agree">Don't have an account yet? <a data-toggle="modal" data-target="#register-modal">Register here.</a></p>
             </div><!-- end col -->
           </div><!-- end row -->
@@ -771,6 +777,76 @@
   <!-- /.modal-dialog -->
 </div>
 <!-- /.modal -->
+
+<div class="modal brane-modal fade" tabindex="-1" role="dialog" id="forgot-modal">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      
+      <div class="modal-body text-center">
+
+        <form role="form">
+          <div class="row">
+            <div class="col-xs-12">
+              <h3 class="m-t-0 m-b-40">Reset Password</h3>
+
+              <div class="form-group">
+                <input class="form-control" name="email" placeholder="Email Address" type="email" data-validationmessage="Please fill out email" required="required" />
+              </div> 
+              
+              <button type="submit" class="btn btn-lg btn-em btn-block forgot">Reset</button>
+              
+            </div><!-- end col -->
+          </div><!-- end row -->
+
+        </form>
+
+      </div>
+      <!-- /.modal-body -->
+    </div>
+    <!-- /.modal-content -->
+  </div>
+  <!-- /.modal-dialog -->
+</div>
+
+<div class="modal brane-modal fade" tabindex="-1" role="dialog" id="reset-modal">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      
+      <div class="modal-body text-center">
+
+        <form role="form">
+          <div class="row">
+            <div class="col-xs-12"> 
+              <h3 class="m-t-0 m-b-40">Choose A New Password</h3>
+
+              <div class="form-group">
+                <input class="form-control" name="new_password" placeholder="New Password" type="password" data-validationmessage="Please fill out password" id="newpassword" required="required" />
+                <span class="help-block"></span>
+              </div> 
+              <div class="form-group">
+                <input class="form-control" name="confirm_new_password" placeholder="Confirm New Password" 
+                type="password" 
+                data-validationmatch="#newpassword" 
+                data-validationmessage="Must match password entered above" required="required" />
+                <span class="help-block"></span>
+              </div> 
+
+              <input type="hidden" name="email" value="<?php echo $reset_email ?>">    
+              <input type="hidden" name="hash" value="<?php echo $reset_hash ?>">  
+              <button type="submit" href="#" class="btn btn-lg btn-em btn-block">Apply</button>
+              
+            </div><!-- end col -->
+          </div><!-- end row -->
+
+        </form>
+
+      </div>
+      <!-- /.modal-body -->
+    </div>
+    <!-- /.modal-content -->
+  </div>
+  <!-- /.modal-dialog -->
+</div>
 
 <div class="modal fade" tabindex="-1" role="dialog" id="join-modal">
   <div class="modal-dialog" role="document">
