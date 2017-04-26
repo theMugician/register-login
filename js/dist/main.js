@@ -6631,7 +6631,7 @@ this.dataAdapter.destroy(),this.selection.destroy(),this.dropdown.destroy(),this
 				}
 			}
 
-			if(step === 1) {
+			if(step === 1 && isValid) {
 				registerUser();
 			} else {
 				if (isValid) {
